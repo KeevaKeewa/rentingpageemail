@@ -160,7 +160,7 @@
                 <input type="radio" name="delivery" value="pickup" checked onclick="toggleDelivery()"> 🏠 Afhentning i Brande (0 DKK)
             </label>
             <label>
-                <input type="radio" name="delivery" value="delivery" onclick="toggleDelivery()"> 🚚 Levering til station (+1200 / 1500 DKK)
+                <input type="radio" name="delivery" value="delivery" onclick="toggleDelivery()"> 🚚 Levering til station (+500 DKK)
             </label>
             <div id="delivery-options" style="display:none; margin-top: 10px;">
                 <select id="location" onchange="updatePrice(); checkForm();">
@@ -256,8 +256,8 @@ function updatePrice() {
         const delivery = document.querySelector('input[name="delivery"]:checked').value;
         if (delivery === 'delivery') {
             const loc = document.getElementById('location').value;
-            if (loc === 'Holstebro st.') total += 1500;
-            else if (loc !== "") total += 1200;
+            if (loc === 'Holstebro st.') total += 600;
+            else if (loc !== "") total += 500;
         }
         
         document.getElementById('price').textContent = `Pris: ${total} DKK`;
