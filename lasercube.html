@@ -229,7 +229,7 @@
         checkForm();
     }
 
-    function updatePrice() {
+function updatePrice() {
         if (selectedDates.length < 2) {
             document.getElementById('price').textContent = 'Pris: 0 DKK';
             return 0;
@@ -238,13 +238,22 @@
         const end = selectedDates[1];
         const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
         
-        let rate = 1200;
-        if (days > 7) rate = 4500;
-        else if (days >= 3) rate = 2000;
+        let dailyRate = 0;
 
-        let total = days * rate;
+        // Bestem dagsprisen baseret på antal dage (tilbudstrappen)
+        if (days >= 7) {
+            dailyRate = 4500 / 7; // Ca. 642,85 kr.
+        } else if (days >= 3) {
+            dailyRate = 2000 / 3; // Ca. 666,67 kr.
+        } else {
+            dailyRate = 1200;      // 1200 kr.
+        }
+
+        // Beregn total og afrund til nærmeste hele tal
+        let total = Math.round(days * dailyRate);
+
+        // Håndtering af levering
         const delivery = document.querySelector('input[name="delivery"]:checked').value;
-        
         if (delivery === 'delivery') {
             const loc = document.getElementById('location').value;
             if (loc === 'Holstebro st.') total += 1500;
