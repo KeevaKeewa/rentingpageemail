@@ -238,9 +238,9 @@
         const end = selectedDates[1];
         const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
         
-        let rate = 298;
-        if (days > 7) rate = 150;
-        else if (days >= 3) rate = 200;
+        let rate = 1200;
+        if (days > 7) rate = 4500;
+        else if (days >= 3) rate = 2000;
 
         let total = days * rate;
         const delivery = document.querySelector('input[name="delivery"]:checked').value;
