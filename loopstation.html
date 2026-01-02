@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lej Loopstation</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --success-color: #28a745;
+            --bg-color: #f4f7f9;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: var(--bg-color);
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            box-sizing: border-box;
+        }
+
+        h1 { margin-top: 0; font-size: 24px; text-align: center; }
+        h3 { font-size: 16px; color: #666; margin-bottom: 10px; margin-top: 20px; }
+
+        input[type="text"], 
+        input[type="time"], 
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .options { margin-bottom: 20px; }
+        .options label { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 12px; 
+            cursor: pointer;
+            font-size: 15px;
+        }
+        .options input[type="radio"] { margin-right: 10px; }
+
+        #price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 25px 0;
+            padding: 15px;
+            background: #f0f4f8;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        #send-btn {
+            width: 100%;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+        #send-btn:hover:not(:disabled) { background-color: #0056b3; }
+        #send-btn:disabled { background-color: #cbd5e0; cursor: not-allowed; }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+        .modal-content {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            max-width: 400px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            margin-bottom: 12px;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        /* Rettet Confirmation Box med link */
+        .confirmation-box {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin: 15px 0 20px 0;
+        }
+        .confirmation-box input { width: auto !important; margin-top: 3px !important; }
+        .confirmation-box label { font-size: 13px; line-height: 1.4; color: #555; }
+        .confirmation-box a { color: var(--primary-color); text-decoration: underline; }
+
+        #confirm-btn {
+            width: 100%;
+            background-color: var(--success-color);
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        #confirm-btn:disabled { background-color: #ccc; }
+
+        #success-modal .modal-content { text-align: center; }
+        .checkmark { font-size: 50px; color: var(--success-color); }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Loopstation mk2</h1>
+        
+        <h3>1. Vælg lejeperiode</h3>
+        <input type="text" id="calendar" placeholder="Vælg start- og slutdato...">
+        
+        <h3>2. Ønsket tidspunkt for afhentning/levering</h3>
+        <input type="time" id="pickup-time" value="12:00">
+
+        <h3>3. Levering eller afhentning</h3>
+        <div class="options">
+            <label>
+                <input type="radio" name="delivery" value="pickup" checked onclick="toggleDelivery()"> 🏠 Afhentning i Brande (0 DKK)
+            </label>
+            <label>
+                <input type="radio" name="delivery" value="delivery" disabled> 🚚 Levering til station (+439 DKK)
+            </label>
+            <div id="delivery-options" style="display:none; margin-top: 10px;">
+                <select id="location" onchange="updatePrice(); checkForm();">
+                    <option value="">-- Vælg station --</option>
+                    <option value="Herning st.">Herning st.</option>
+                    <option value="Vejle st.">Vejle st.</option>
+                    <option value="Ikast st.">Ikast st.</option>
+                    <option value="Give st.">Give st.</option>
+                    <option value="Holstebro st.">Holstebro st.</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="price">Pris: 0 DKK</div>
+        <button id="send-btn" onclick="showModal()" disabled>Send anmodning</button>
+    </div>
+
+    <div id="request-modal" class="modal">
+        <div class="modal-content">
+            <h2>Dine oplysninger</h2>
+            <div id="summary" style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; line-height: 1.5; border-left: 4px solid var(--primary-color);"></div>
+            
+            <input type="text" id="name" placeholder="Fulde navn">
+            <input type="email" id="email" placeholder="Email">
+            <input type="tel" id="phone" placeholder="Telefonnummer">
+            <textarea id="message" placeholder="Besked til udlejer (valgfri)" rows="3"></textarea>
+            
+            <div class="confirmation-box">
+                <input type="checkbox" id="terms-check" onchange="checkConfirm()">
+                <label for="terms-check">Jeg har læst og accepterer <a href="https://www.keeva.dk/shop/lasercube-25w-wifi-4#accordion-button167647_1" target="_blank">lejevilkårene</a></label>
+            </div>
+            
+            <button id="confirm-btn" onclick="handleFinalSubmit()" disabled>Bekræft og Send Mail</button>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <span class="checkmark">✓</span>
+            <h2>Anmodning sendt!</h2>
+            <p id="success-date" style="font-size: 14px; color: #666;"></p>
+            <button onclick="location.reload()" style="margin-top:10px; padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">Luk</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    let selectedDates = [];
+
+    // Kalender opsætning - Nu uden 'disable' funktion
+    const fp = flatpickr("#calendar", {
+        mode: "range",
+        dateFormat: "d-m-Y",
+        minDate: "today",
+        onChange: function(dates) {
+            selectedDates = dates;
+            updatePrice();
+            checkForm();
+        }
+    });
+
+    function toggleDelivery() {
+        const delivery = document.querySelector('input[name="delivery"]:checked').value;
+        document.getElementById('delivery-options').style.display = delivery === 'delivery' ? 'block' : 'none';
+        updatePrice();
+        checkForm();
+    }
+
+function updatePrice() {
+        if (selectedDates.length < 2) {
+            document.getElementById('price').textContent = 'Pris: 0 DKK';
+            return 0;
+        }
+        const start = selectedDates[0];
+        const end = selectedDates[1];
+        const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+        
+        let dailyRate = 0;
+
+        // Bestem dagsprisen baseret på antal dage (tilbudstrappen)
+        if (days >= 7) {
+            dailyRate = 4500 / 7; // Ca. 642,85 kr.
+        } else if (days >= 3) {
+            dailyRate = 2000 / 3; // Ca. 666,67 kr.
+        } else {
+            dailyRate = 1200;      // 1200 kr.
+        }
+
+        // Beregn total og afrund til nærmeste hele tal
+        let total = Math.round(days * dailyRate);
+
+        // Håndtering af levering
+        const delivery = document.querySelector('input[name="delivery"]:checked').value;
+        if (delivery === 'delivery') {
+            const loc = document.getElementById('location').value;
+            if (loc === 'Holstebro st.') total += 600;
+            else if (loc !== "") total += 500;
+        }
+        
+        document.getElementById('price').textContent = `Pris: ${total} DKK`;
+        return total;
+    }
+
+    function checkForm() {
+        const delivery = document.querySelector('input[name="delivery"]:checked').value;
+        const location = document.getElementById('location').value;
+        const isValid = selectedDates.length === 2 && (delivery !== 'delivery' || location !== "");
+        document.getElementById('send-btn').disabled = !isValid;
+    }
+
+    function showModal() {
+        const time = document.getElementById('pickup-time').value;
+        const summary = `
+            <b>Periode:</b> ${fp.formatDate(selectedDates[0], "d-m-Y")} - ${fp.formatDate(selectedDates[1], "d-m-Y")}<br>
+            <b>Ønsket tid:</b> kl. ${time}<br>
+            <b>Type:</b> ${document.querySelector('input[name="delivery"]:checked').value === 'pickup' ? 'Afhentning' : 'Levering (' + document.getElementById('location').value + ')'}<br>
+            <b>Total:</b> ${document.getElementById('price').textContent}
+        `;
+        document.getElementById('summary').innerHTML = summary;
+        document.getElementById('request-modal').style.display = 'flex';
+    }
+
+    function checkConfirm() {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const phone = document.getElementById('phone').value.trim();
+        const checked = document.getElementById('terms-check').checked;
+        document.getElementById('confirm-btn').disabled = !(name && email && phone && checked);
+    }
+
+    ['name', 'email', 'phone'].forEach(id => {
+        document.getElementById(id).addEventListener('input', checkConfirm);
+    });
+
+    function handleFinalSubmit() {
+        const name = document.getElementById('name').value;
+        const email = document.getElementById('email').value;
+        const phone = document.getElementById('phone').value;
+        const msg = document.getElementById('message').value;
+        const time = document.getElementById('pickup-time').value;
+        const totalPrice = document.getElementById('price').textContent;
+        const deliveryInfo = document.querySelector('input[name="delivery"]:checked').value === 'pickup' ? 'Afhentning' : 'Levering til ' + document.getElementById('location').value;
+
+        const subject = encodeURIComponent("Booking: Lasercube 2.5W WiFi");
+        const body = encodeURIComponent(
+            `Navn: ${name}\nEmail: ${email}\nTelefon: ${phone}\n\n` +
+            `Periode: ${fp.formatDate(selectedDates[0], "d-m-Y")} til ${fp.formatDate(selectedDates[1], "d-m-Y")}\n` +
+            `Ønsket tid: kl. ${time}\n` +
+            `Type: ${deliveryInfo}\nTotal Pris: ${totalPrice}\n\nBesked: ${msg}`
+        );
+
+        window.location.href = `mailto:flippermuhlig1@gmail.com?subject=${subject}&body=${body}`;
+
+        document.getElementById('request-modal').style.display = 'none';
+        document.getElementById('success-date').textContent = "Anmodning oprettet d. " + new Date().toLocaleDateString('da-DK');
+        document.getElementById('success-modal').style.display = 'flex';
+    }
+
+    window.onclick = function(e) {
+        if (e.target.className === 'modal') e.target.style.display = 'none';
+    }
+</script>
+</body>
+</html>
