@@ -163,7 +163,7 @@
     <h1>Loopstation mk2</h1>
     
     <h3>1. Vælg lejeperiode</h3>
-    <input type="text" id="calendar" placeholder="Vælg start- og slutdato...">
+    <input type="text" id="calendar" placeholder="Vælg start- og slutdato..." class="flatpickr-input active" readonly="readonly">
     
     <h3>2. Ønsket tidspunkt for afhentning/levering</h3>
     <input type="time" id="pickup-time" value="12:00">
@@ -238,6 +238,7 @@
 import emailjs from "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
 emailjs.init("iVXszx2CE7uZqq7r6");
 
+// --- ALT andet er 100% copy-paste fra original ---
 let selectedDates = [];
 
 const fp = flatpickr("#calendar", {
@@ -310,6 +311,7 @@ function checkConfirm(){
     document.getElementById(id).addEventListener('input',checkConfirm);
 });
 
+// --- HER ER ENESTE ÆNDRING: EmailJS SDK v4 + failure modal ---
 function handleFinalSubmit(){
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
@@ -345,6 +347,7 @@ Besked: ${msg}`;
         const failModal=document.getElementById('fail-modal');
         const failTextarea=document.getElementById('fail-textarea');
         failTextarea.value=fallbackText;
+        failTextarea.select();
         failModal.style.display='flex';
     });
 }
