@@ -104,6 +104,7 @@ input[type="text"], input[type="time"], select {
       <input type="text" name="time" id="time" hidden>
       <input type="text" name="deliveryInfo" id="deliveryInfo" hidden>
       <input type="text" name="price" id="form-price" hidden>
+      <input type="text" name="item" id="item" hidden>
       <input type="text" name="message" id="message" placeholder="Besked til udlejer (valgfri)">
       <div class="confirmation-box">
         <input type="checkbox" id="terms-check" onchange="checkConfirm()">
@@ -185,6 +186,7 @@ function showModal(){
   document.getElementById('deliveryInfo').value = document.querySelector('input[name="delivery"]:checked').value==='pickup' ? 'Afhentning' : 'Levering til '+document.getElementById('location').value;
   document.getElementById('form-price').value=document.getElementById('price').textContent;
   document.getElementById('request-modal').style.display='flex';
+  document.getElementById('item').value = document.querySelector('.container h1').textContent;
 }
 
 // Enable confirm button
@@ -212,7 +214,8 @@ document.getElementById('booking-form').addEventListener('submit', function(e){
   document.getElementById('request-modal').style.display = 'none';
 
   const mailText =
-`Navn: ${this.name.value}
+`Item: ${document.querySelector('.container h1').textContent}
+Navn: ${this.name.value}
 Email: ${this.email.value}
 Telefon: ${this.phone.value}
 
