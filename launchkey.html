@@ -215,7 +215,7 @@ document.getElementById('booking-form').addEventListener('submit', function(e){
   e.preventDefault();
   const btn=document.getElementById('confirm-btn');
   btn.value='Sender...';
-  emailjs.sendForm('service_f2mk0nm','template_gg154ommmmmmm',this)
+  emailjs.sendForm('service_f2mk0nm','HELLOTHISISWRONG',this)
   .then(()=>{
     btn.value='Bekræft og Send Mail';
     document.getElementById('request-modal').style.display='none';
