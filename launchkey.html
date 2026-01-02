@@ -153,18 +153,31 @@ function toggleDelivery() {
 }
 
 function updatePrice() {
-  if(selectedDates.length<2){document.getElementById('price').textContent='Pris: 0 DKK'; return 0;}
-  const start = selectedDates[0], end = selectedDates[1];
-  const days = Math.floor((end-start)/(1000*60*60*24))+1;
-  let rate = 249; if(days==1) rate=299; if(days>=3) rate=240; if(days>=7) rate=200;
-  let total = Math.round(days*rate);
-  const delivery = document.querySelector('input[name="delivery"]:checked').value;
-  if(delivery==='delivery'){
-    const loc=document.getElementById('location').value;
-    if(loc==='Holstebro st.') total+=600; else if(loc!=='') total+=439;
-  }
-  document.getElementById('price').textContent=`Pris: ${total} DKK`;
-  return total;
+    if (selectedDates.length < 2) {
+        document.getElementById('price').textContent = 'Pris: 0 DKK';
+        return 0;
+    }
+
+    const start = selectedDates[0], end = selectedDates[1];
+    const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+    let total = 0;
+
+    if (days === 1) {
+        total = 299; // Startpris for 1 dag
+    } else {
+        total = 299 + (days - 1) * 249; // 299 for første dag, derefter 249 pr dag
+    }
+
+    const delivery = document.querySelector('input[name="delivery"]:checked').value;
+    if (delivery === 'delivery') {
+        const loc = document.getElementById('location').value;
+        if (loc === 'Holstebro st.') total += 600;
+        else if (loc !== '') total += 439;
+    }
+
+    document.getElementById('price').textContent = `Pris: ${total} DKK`;
+    return total;
 }
 
 function checkForm(){
