@@ -9,7 +9,6 @@
         :root {
             --primary-color: #007bff;
             --success-color: #28a745;
-            --fail-color: #dc3545;
             --bg-color: #f4f7f9;
         }
 
@@ -40,10 +39,7 @@
 
         input[type="text"], 
         input[type="time"], 
-        select,
-        input[type="email"],
-        input[type="tel"],
-        textarea {
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -89,6 +85,7 @@
         #send-btn:hover:not(:disabled) { background-color: #0056b3; }
         #send-btn:disabled { background-color: #cbd5e0; cursor: not-allowed; }
 
+        /* Modal Styles */
         .modal {
             display: none;
             position: fixed;
@@ -118,6 +115,7 @@
             box-sizing: border-box;
         }
 
+        /* Confirmation Box */
         .confirmation-box {
             display: flex;
             align-items: flex-start;
@@ -141,190 +139,186 @@
         }
         #confirm-btn:disabled { background-color: #ccc; }
 
-        #success-modal .modal-content, #fail-modal .modal-content { text-align: center; }
+        #success-modal .modal-content { text-align: center; }
         .checkmark { font-size: 50px; color: var(--success-color); }
-        .failmark { font-size: 50px; color: var(--fail-color); }
 
-        #fail-textarea {
-            width: 100%;
-            height: 150px;
-            font-size: 14px;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            resize: none;
-            margin-top: 10px;
-        }
+        /* Failure modal */
+        #fail-modal .modal-content { text-align: center; }
+        #fail-modal textarea { font-family: monospace; height: 250px; }
+        #fail-modal button { margin-top: 10px; padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Loopstation mk2</h1>
-    
-    <h3>1. Vælg lejeperiode</h3>
-    <input type="text" id="calendar" placeholder="Vælg start- og slutdato..." class="flatpickr-input active" readonly="readonly">
-    
-    <h3>2. Ønsket tidspunkt for afhentning/levering</h3>
-    <input type="time" id="pickup-time" value="12:00">
+    <div class="container">
+        <h1>Loopstation mk2</h1>
+        
+        <h3>1. Vælg lejeperiode</h3>
+        <input type="text" id="calendar" placeholder="Vælg start- og slutdato..." readonly="readonly" class="flatpickr-input active">
+        
+        <h3>2. Ønsket tidspunkt for afhentning/levering</h3>
+        <input type="time" id="pickup-time" value="12:00">
 
-    <h3>3. Levering eller afhentning</h3>
-    <div class="options">
-        <label>
-            <input type="radio" name="delivery" value="pickup" checked onclick="toggleDelivery()"> 🏠 Afhentning i Brande (0 DKK)
-        </label>
-        <label>
-            <input type="radio" name="delivery" value="delivery" onclick="toggleDelivery()"> 🚚 Levering til station (+439 DKK)
-        </label>
-        <div id="delivery-options" style="display:none; margin-top: 10px;">
-            <select id="location" onchange="updatePrice(); checkForm();">
-                <option value="">-- Vælg station --</option>
-                <option value="Herning st.">Herning st.</option>
-                <option value="Vejle st.">Vejle st.</option>
-                <option value="Ikast st.">Ikast st.</option>
-                <option value="Give st.">Give st.</option>
-                <option value="Holstebro st.">Holstebro st.</option>
-            </select>
+        <h3>3. Levering eller afhentning</h3>
+        <div class="options">
+            <label>
+                <input type="radio" name="delivery" value="pickup" checked onclick="toggleDelivery()"> 🏠 Afhentning i Brande (0 DKK)
+            </label>
+            <label>
+                <input type="radio" name="delivery" value="delivery" onclick="toggleDelivery()"> 🚚 Levering til station (+439 DKK)
+            </label>
+            <div id="delivery-options" style="display:none; margin-top: 10px;">
+                <select id="location" onchange="updatePrice(); checkForm();">
+                    <option value="">-- Vælg station --</option>
+                    <option value="Herning st.">Herning st.</option>
+                    <option value="Vejle st.">Vejle st.</option>
+                    <option value="Ikast st.">Ikast st.</option>
+                    <option value="Give st.">Give st.</option>
+                    <option value="Holstebro st.">Holstebro st.</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="price">Pris: 0 DKK</div>
+        <button id="send-btn" onclick="showModal()" disabled>Send anmodning</button>
+    </div>
+
+    <!-- Request modal -->
+    <div id="request-modal" class="modal">
+        <div class="modal-content">
+            <h2>Dine oplysninger</h2>
+            <div id="summary" style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; line-height: 1.5; border-left: 4px solid var(--primary-color);"></div>
+            
+            <input type="text" id="name" placeholder="Fulde navn">
+            <input type="email" id="email" placeholder="Email">
+            <input type="tel" id="phone" placeholder="Telefonnummer">
+            <textarea id="message" placeholder="Besked til udlejer (valgfri)" rows="3"></textarea>
+            
+            <div class="confirmation-box">
+                <input type="checkbox" id="terms-check" onchange="checkConfirm()">
+                <label for="terms-check">Jeg har læst og accepterer <a href="https://www.keeva.dk/shop/loopstation-mk2-15#accordion-button167647_1" target="_blank">lejevilkårene</a></label>
+            </div>
+            
+            <button id="confirm-btn" onclick="handleFinalSubmit()" disabled>Bekræft og Send Mail</button>
         </div>
     </div>
 
-    <div id="price">Pris: 0 DKK</div>
-    <button id="send-btn" onclick="showModal()" disabled>Send anmodning</button>
-</div>
-
-<!-- Request Modal -->
-<div id="request-modal" class="modal">
-    <div class="modal-content">
-        <h2>Dine oplysninger</h2>
-        <div id="summary" style="background: #f9f9f9; padding: 12px; border-radius: 6px; margin-bottom: 15px; font-size: 13px; line-height: 1.5; border-left: 4px solid var(--primary-color);"></div>
-        
-        <input type="text" id="name" placeholder="Fulde navn">
-        <input type="email" id="email" placeholder="Email">
-        <input type="tel" id="phone" placeholder="Telefonnummer">
-        <textarea id="message" placeholder="Besked til udlejer (valgfri)" rows="3"></textarea>
-        
-        <div class="confirmation-box">
-            <input type="checkbox" id="terms-check" onchange="checkConfirm()">
-            <label for="terms-check">Jeg har læst og accepterer <a href="https://www.keeva.dk/shop/loopstation-mk2-15#accordion-button167647_1" target="_blank">lejevilkårene</a></label>
+    <!-- Success modal -->
+    <div id="success-modal" class="modal">
+        <div class="modal-content">
+            <span class="checkmark">✓</span>
+            <h2>Anmodning sendt!</h2>
+            <p id="success-date" style="font-size: 14px; color: #666;"></p>
+            <button onclick="location.reload()">Luk</button>
         </div>
-        
-        <button id="confirm-btn" onclick="handleFinalSubmit()" disabled>Bekræft og Send Mail</button>
     </div>
-</div>
 
-<!-- Success Modal -->
-<div id="success-modal" class="modal">
-    <div class="modal-content">
-        <span class="checkmark">✓</span>
-        <h2>Anmodning sendt!</h2>
-        <p id="success-date" style="font-size: 14px; color: #666;"></p>
-        <button onclick="location.reload()" style="margin-top:10px; padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">Luk</button>
+    <!-- Failure modal -->
+    <div id="fail-modal" class="modal">
+        <div class="modal-content">
+            <h2>Email kunne ikke sendes automatisk</h2>
+            <p>Kopier venligst oplysningerne og send manuelt:</p>
+            <textarea id="fail-textarea" readonly></textarea>
+            <button onclick="navigator.clipboard.writeText(document.getElementById('fail-textarea').value)">Kopier til clipboard</button>
+        </div>
     </div>
-</div>
 
-<!-- Failure Modal -->
-<div id="fail-modal" class="modal">
-    <div class="modal-content">
-        <span class="failmark">✗</span>
-        <h2>Email kunne ikke sendes automatisk</h2>
-        <p style="font-size: 14px; color: #666;">Kopier venligst teksten nedenfor og send manuelt til <b>keevacontact@gmail.com</b>:</p>
-        <textarea id="fail-textarea" readonly></textarea>
-        <button onclick="location.reload()" style="margin-top:10px; padding: 12px; width: 100%; border-radius: 8px; border: 1px solid #ddd; background: white; cursor: pointer;">Luk</button>
-    </div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+    <script>
+        emailjs.init("iVXszx2CE7uZqq7r6");
 
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script type="module">
-import emailjs from "https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js";
-emailjs.init("iVXszx2CE7uZqq7r6");
+        let selectedDates = [];
 
-// --- ALT andet er 100% copy-paste fra original ---
-let selectedDates = [];
+        const fp = flatpickr("#calendar", {
+            mode: "range",
+            dateFormat: "d-m-Y",
+            minDate: "today",
+            onChange: function(dates) {
+                selectedDates = dates;
+                updatePrice();
+                checkForm();
+            }
+        });
 
-const fp = flatpickr("#calendar", {
-    mode: "range",
-    dateFormat: "d-m-Y",
-    minDate: "today",
-    onChange: function(dates) {
-        selectedDates = dates;
-        updatePrice();
-        checkForm();
-    }
-});
+        function toggleDelivery() {
+            const delivery = document.querySelector('input[name="delivery"]:checked').value;
+            document.getElementById('delivery-options').style.display = delivery === 'delivery' ? 'block' : 'none';
+            updatePrice();
+            checkForm();
+        }
 
-function toggleDelivery() {
-    const delivery = document.querySelector('input[name="delivery"]:checked').value;
-    document.getElementById('delivery-options').style.display = delivery === 'delivery' ? 'block' : 'none';
-    updatePrice();
-    checkForm();
-}
+        function updatePrice() {
+            if (selectedDates.length < 2) {
+                document.getElementById('price').textContent = 'Pris: 0 DKK';
+                return 0;
+            }
+            const start = selectedDates[0];
+            const end = selectedDates[1];
+            const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            let dailyRate = 0;
 
-function updatePrice() {
-    if (selectedDates.length < 2) {
-        document.getElementById('price').textContent = 'Pris: 0 DKK';
-        return 0;
-    }
-    const start = selectedDates[0];
-    const end = selectedDates[1];
-    const days = Math.floor((end - start) / (1000*60*60*24)) + 1;
-    let dailyRate = days >=7 ? 200/7 : days>=3 ? 240/3 : 249;
-    let total = Math.round(days * dailyRate);
+            if (days >= 7) dailyRate = 200/7;
+            else if (days >= 3) dailyRate = 240/3;
+            else dailyRate = 249;
 
-    const delivery = document.querySelector('input[name="delivery"]:checked').value;
-    if(delivery==='delivery'){
-        const loc = document.getElementById('location').value;
-        if(loc==='Holstebro st.') total+=600;
-        else if(loc!=='') total+=439;
-    }
-    document.getElementById('price').textContent = `Pris: ${total} DKK`;
-    return total;
-}
+            let total = Math.round(days * dailyRate);
 
-function checkForm(){
-    const delivery = document.querySelector('input[name="delivery"]:checked').value;
-    const location = document.getElementById('location').value;
-    const isValid = selectedDates.length===2 && (delivery!=='delivery'||location!=='');
-    document.getElementById('send-btn').disabled = !isValid;
-}
+            const delivery = document.querySelector('input[name="delivery"]:checked').value;
+            if (delivery === 'delivery') {
+                const loc = document.getElementById('location').value;
+                if (loc === 'Holstebro st.') total += 600;
+                else if (loc !== "") total += 439;
+            }
 
-function showModal(){
-    const time = document.getElementById('pickup-time').value;
-    const summary = `
-        <b>Periode:</b> ${fp.formatDate(selectedDates[0],"d-m-Y")} - ${fp.formatDate(selectedDates[1],"d-m-Y")}<br>
-        <b>Ønsket tid:</b> kl. ${time}<br>
-        <b>Type:</b> ${document.querySelector('input[name="delivery"]:checked').value==='pickup'?'Afhentning':'Levering ('+document.getElementById('location').value+')'}<br>
-        <b>Total:</b> ${document.getElementById('price').textContent}
-    `;
-    document.getElementById('summary').innerHTML = summary;
-    document.getElementById('request-modal').style.display='flex';
-}
+            document.getElementById('price').textContent = `Pris: ${total} DKK`;
+            return total;
+        }
 
-function checkConfirm(){
-    const name = document.getElementById('name').value.trim();
-    const email = document.getElementById('email').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const checked = document.getElementById('terms-check').checked;
-    document.getElementById('confirm-btn').disabled = !(name && email && phone && checked);
-}
+        function checkForm() {
+            const delivery = document.querySelector('input[name="delivery"]:checked').value;
+            const location = document.getElementById('location').value;
+            const isValid = selectedDates.length === 2 && (delivery !== 'delivery' || location !== "");
+            document.getElementById('send-btn').disabled = !isValid;
+        }
 
-['name','email','phone'].forEach(id=>{
-    document.getElementById(id).addEventListener('input',checkConfirm);
-});
+        function showModal() {
+            const time = document.getElementById('pickup-time').value;
+            const summary = `
+                <b>Periode:</b> ${fp.formatDate(selectedDates[0], "d-m-Y")} - ${fp.formatDate(selectedDates[1], "d-m-Y")}<br>
+                <b>Ønsket tid:</b> kl. ${time}<br>
+                <b>Type:</b> ${document.querySelector('input[name="delivery"]:checked').value === 'pickup' ? 'Afhentning' : 'Levering (' + document.getElementById('location').value + ')'}<br>
+                <b>Total:</b> ${document.getElementById('price').textContent}
+            `;
+            document.getElementById('summary').innerHTML = summary;
+            document.getElementById('request-modal').style.display = 'flex';
+        }
 
-// --- HER ER ENESTE ÆNDRING: EmailJS SDK v4 + failure modal ---
-function handleFinalSubmit(){
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
-    const phone = document.getElementById('phone').value;
-    const msg = document.getElementById('message').value;
-    const time = document.getElementById('pickup-time').value;
-    const totalPrice = document.getElementById('price').textContent;
-    const deliveryInfo = document.querySelector('input[name="delivery"]:checked').value==='pickup'?'Afhentning':'Levering til '+document.getElementById('location').value;
-    const period = `${fp.formatDate(selectedDates[0],"d-m-Y")} til ${fp.formatDate(selectedDates[1],"d-m-Y")}`;
+        function checkConfirm() {
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const checked = document.getElementById('terms-check').checked;
+            document.getElementById('confirm-btn').disabled = !(name && email && phone && checked);
+        }
 
-    const templateParams = { name, email, phone, message: msg, time, price: totalPrice, deliveryInfo, period };
+        ['name','email','phone'].forEach(id => {
+            document.getElementById(id).addEventListener('input', checkConfirm);
+        });
 
-    const fallbackText = 
+        function handleFinalSubmit() {
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const phone = document.getElementById('phone').value;
+            const msg = document.getElementById('message').value;
+            const time = document.getElementById('pickup-time').value;
+            const totalPrice = document.getElementById('price').textContent;
+            const deliveryInfo = document.querySelector('input[name="delivery"]:checked').value === 'pickup' ? 'Afhentning' : 'Levering til ' + document.getElementById('location').value;
+            const period = `${fp.formatDate(selectedDates[0],"d-m-Y")} til ${fp.formatDate(selectedDates[1],"d-m-Y")}`;
+
+            const templateParams = { name, email, phone, message: msg, time, price: totalPrice, deliveryInfo, period };
+
+            const fallbackText = 
 `Navn: ${name}
 Email: ${email}
 Telefon: ${phone}
@@ -336,25 +330,22 @@ Total Pris: ${totalPrice}
 
 Besked: ${msg}`;
 
-    emailjs.send("service_f2mk0nm","template_ery27ij",templateParams)
-    .then(()=>{
-        document.getElementById('request-modal').style.display='none';
-        document.getElementById('success-date').textContent="Anmodning oprettet d. "+new Date().toLocaleDateString('da-DK');
-        document.getElementById('success-modal').style.display='flex';
-    })
-    .catch(()=>{
-        document.getElementById('request-modal').style.display='none';
-        const failModal=document.getElementById('fail-modal');
-        const failTextarea=document.getElementById('fail-textarea');
-        failTextarea.value=fallbackText;
-        failTextarea.select();
-        failModal.style.display='flex';
-    });
-}
+            emailjs.send("service_f2mk0nm","template_ery27ij", templateParams)
+                .then(() => {
+                    document.getElementById('request-modal').style.display = 'none';
+                    document.getElementById('success-date').textContent = "Anmodning oprettet d. " + new Date().toLocaleDateString('da-DK');
+                    document.getElementById('success-modal').style.display = 'flex';
+                })
+                .catch(() => {
+                    document.getElementById('request-modal').style.display='none';
+                    document.getElementById('fail-textarea').value = fallbackText;
+                    document.getElementById('fail-modal').style.display='flex';
+                });
+        }
 
-window.onclick = function(e){
-    if(e.target.className==='modal') e.target.style.display='none';
-}
-</script>
+        window.onclick = function(e) {
+            if(e.target.className==='modal') e.target.style.display='none';
+        }
+    </script>
 </body>
 </html>
