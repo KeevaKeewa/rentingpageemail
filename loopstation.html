@@ -242,11 +242,11 @@ function updatePrice() {
 
         // Bestem dagsprisen baseret på antal dage (tilbudstrappen)
         if (days >= 7) {
-            dailyRate = 4500 / 7; // Ca. 642,85 kr.
+            dailyRate = 200 / 7; //
         } else if (days >= 3) {
-            dailyRate = 2000 / 3; // Ca. 666,67 kr.
+            dailyRate = 240 / 3; // 
         } else {
-            dailyRate = 1200;      // 1200 kr.
+            dailyRate = 249;      // 249 kr.
         }
 
         // Beregn total og afrund til nærmeste hele tal
@@ -257,7 +257,7 @@ function updatePrice() {
         if (delivery === 'delivery') {
             const loc = document.getElementById('location').value;
             if (loc === 'Holstebro st.') total += 600;
-            else if (loc !== "") total += 500;
+            else if (loc !== "") total += 439;
         }
         
         document.getElementById('price').textContent = `Pris: ${total} DKK`;
