@@ -316,9 +316,7 @@
             const deliveryInfo = document.querySelector('input[name="delivery"]:checked').value === 'pickup' ? 'Afhentning' : 'Levering til ' + document.getElementById('location').value;
             const period = `${fp.formatDate(selectedDates[0],"d-m-Y")} til ${fp.formatDate(selectedDates[1],"d-m-Y")}`;
 
-            const templateParams = { name, email, phone, message: msg, time, price: totalPrice, deliveryInfo, period };
-
-            const fallbackText = 
+            const bodyContent = 
 `Navn: ${name}
 Email: ${email}
 Telefon: ${phone}
@@ -330,7 +328,7 @@ Total Pris: ${totalPrice}
 
 Besked: ${msg}`;
 
-            emailjs.send("service_f2mk0nm","template_ery27ij", templateParams)
+emailjs.send("service_f2mk0nm","template_ery27ij", { body: bodyContent })
                 .then(() => {
                     document.getElementById('request-modal').style.display = 'none';
                     document.getElementById('success-date').textContent = "Anmodning oprettet d. " + new Date().toLocaleDateString('da-DK');
