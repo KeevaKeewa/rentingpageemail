@@ -108,7 +108,7 @@ input[type="text"], input[type="time"], select {
       <input type="text" name="message" id="message" placeholder="Besked til udlejer (valgfri)">
       <div class="confirmation-box">
         <input type="checkbox" id="terms-check" onchange="checkConfirm()">
-        <label for="terms-check">Jeg har læst og accepterer <a href="https://www.keeva.dk/shop/loopstation-mk2-15#accordion-button167647_1" target="_blank">lejevilkårene</a></label>
+        <label for="terms-check">Jeg har læst og accepterer <a href="https://www.keeva.dk/shop/røgmaskine-500w-16#accordion-button167647_1" target="_blank">lejevilkårene</a></label>
       </div>
       <input type="submit" id="confirm-btn" value="Bekræft og Send Mail" disabled>
     </form>
@@ -156,7 +156,7 @@ function updatePrice() {
   if(selectedDates.length<2){document.getElementById('price').textContent='Pris: 0 DKK'; return 0;}
   const start = selectedDates[0], end = selectedDates[1];
   const days = Math.floor((end-start)/(1000*60*60*24))+1;
-  let rate = 249; if(days==1) rate=299; if(days>=3) rate=240; if(days>=7) rate=200;
+  let rate = 289; if(days>=3) rate=240; if(days>=7) rate=200;
   let total = Math.round(days*rate);
   const delivery = document.querySelector('input[name="delivery"]:checked').value;
   if(delivery==='delivery'){
@@ -232,7 +232,7 @@ Besked: ${this.message.value}`;
 
   // Open user's default mail app automatically
   openMailClient(
-    'Booking: Loopstation mk2',
+    'Booking: Røgmaskine 500w',
     mailText
   );
 });
