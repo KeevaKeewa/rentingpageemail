@@ -3,7 +3,39 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lej Røgmaskine</title>
+
+<!-- ==================== CONFIG SECTION ==================== -->
+<script>
+const CONFIG = {
+  pageTitle: "Lej Røgmaskine",
+  itemName: "Røgmaskine 500w",
+  TermsLink: "https://www.keeva.dk/shop/røgmaskine-500w-16#accordion-button167647_1",
+  emailJsUserId: "iVXszx2CE7uZqq7r6",
+  emailJsServiceId: "service_f2mk0nm",
+  emailJsTemplateId: "template_gg154om",
+  fallbackEmail: "sanfro04@gmail.com",
+  bookingSubject: "Booking: Røgmaskine | Keeva", //Hvis en mail sendes manuelt via. brugerens lokale mail.
+  // Pricing rules: firstDay + thresholds for extra days
+  pricing: {
+    firstDay: 289, // Price for 1 day
+    thresholds: [
+      { minDays: 7, perDay: 200 },
+      { minDays: 3, perDay: 249 }
+    ]
+  },
+  // Stations with optional extra cost
+  stations: {
+    "Herning st.": 0,
+    "Vejle st.": 0,
+    "Ikast st.": 0,
+    "Give st.": 0,
+    "Holstebro st.": 600
+  }
+};
+</script>
+<!-- ==================== END CONFIG ==================== -->
+
+<title id="page-title">Lej</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 :root {
@@ -29,7 +61,7 @@ h1 { margin-top:0; font-size:24px; text-align:center; }
 h3 { font-size:16px; color:#666; margin:20px 0 10px 0; }
 input[type="text"], input[type="time"], select {
   width: 100%; padding: 12px; border:1px solid #ddd;
-  border-radius: 8px; font-size:16px; box-sizing: border-box; background:#fff;
+  border-radius: 8px; font-size:16px; box-sizing:border-box; background:#fff;
 }
 .options { margin-bottom: 20px; }
 .options label {
@@ -64,7 +96,7 @@ input[type="text"], input[type="time"], select {
 <body>
 
 <div class="container">
-  <h1>Røgmaskine</h1>
+  <h1 id="item-name">Røgmaskine</h1>
   <h3>1. Vælg lejeperiode</h3>
   <input type="text" id="calendar" placeholder="Vælg start- og slutdato..." readonly class="flatpickr-input active">
 
@@ -78,11 +110,6 @@ input[type="text"], input[type="time"], select {
     <div id="delivery-options" style="display:none; margin-top:10px;">
       <select id="location" onchange="updatePrice(); checkForm();">
         <option value="">-- Vælg station --</option>
-        <option value="Herning st.">Herning st.</option>
-        <option value="Vejle st.">Vejle st.</option>
-        <option value="Ikast st.">Ikast st.</option>
-        <option value="Give st.">Give st.</option>
-        <option value="Holstebro st.">Holstebro st.</option>
       </select>
     </div>
   </div>
@@ -108,7 +135,7 @@ input[type="text"], input[type="time"], select {
       <input type="text" name="message" id="message" placeholder="Besked til udlejer (valgfri)">
       <div class="confirmation-box">
         <input type="checkbox" id="terms-check" onchange="checkConfirm()">
-        <label for="terms-check">Jeg har læst og accepterer <a href="https://www.keeva.dk/shop/røgmaskine-500w-16#accordion-button167647_1" target="_blank">lejevilkårene</a></label>
+        <label for="terms-check">Jeg har læst og accepterer <a id="terms-link" href="#" target="_blank">lejevilkårene</a></label>
       </div>
       <input type="submit" id="confirm-btn" value="Bekræft og Send Mail" disabled>
     </form>
@@ -138,7 +165,20 @@ input[type="text"], input[type="time"], select {
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>
-emailjs.init('iVXszx2CE7uZqq7r6');
+/* ==================== APPLY CONFIG ==================== */
+document.getElementById('page-title').textContent = CONFIG.pageTitle;
+document.getElementById('item-name').textContent = CONFIG.itemName;
+document.getElementById('terms-link').href = CONFIG.TermsLink;
+emailjs.init(CONFIG.emailJsUserId);
+
+const stationSelect = document.getElementById('location');
+Object.keys(CONFIG.stations).forEach(s=>{
+  const opt = document.createElement('option');
+  opt.value = s;
+  opt.textContent = s;
+  stationSelect.appendChild(opt);
+});
+/* ==================== END CONFIG ==================== */
 
 let selectedDates = [];
 const fp = flatpickr("#calendar", {
@@ -152,16 +192,24 @@ function toggleDelivery() {
   updatePrice(); checkForm();
 }
 
+// Enhanced pricing calculation based on thresholds
 function updatePrice() {
   if(selectedDates.length<2){document.getElementById('price').textContent='Pris: 0 DKK'; return 0;}
   const start = selectedDates[0], end = selectedDates[1];
   const days = Math.floor((end-start)/(1000*60*60*24))+1;
-  let rate = 289; if(days>=3) rate=240; if(days>=7) rate=200;
-  let total = Math.round(days*rate);
+  
+  let perDay = CONFIG.pricing.firstDay; // default for first day
+  CONFIG.pricing.thresholds.sort((a,b)=>b.minDays-a.minDays); // Descending
+  for(const t of CONFIG.pricing.thresholds){
+    if(days>=t.minDays){ perDay = t.perDay; break; }
+  }
+
+  let total = CONFIG.pricing.firstDay + (days>1 ? (days-1)*perDay : 0);
+
   const delivery = document.querySelector('input[name="delivery"]:checked').value;
   if(delivery==='delivery'){
     const loc=document.getElementById('location').value;
-    if(loc==='Holstebro st.') total+=600; else if(loc!=='') total+=439;
+    if(loc in CONFIG.stations) total += CONFIG.stations[loc];
   }
   document.getElementById('price').textContent=`Pris: ${total} DKK`;
   return total;
@@ -186,10 +234,9 @@ function showModal(){
   document.getElementById('deliveryInfo').value = document.querySelector('input[name="delivery"]:checked').value==='pickup' ? 'Afhentning' : 'Levering til '+document.getElementById('location').value;
   document.getElementById('form-price').value=document.getElementById('price').textContent;
   document.getElementById('request-modal').style.display='flex';
-  document.getElementById('item').value = document.querySelector('.container h1').textContent;
+  document.getElementById('item').value = CONFIG.itemName;
 }
 
-// Enable confirm button
 function checkConfirm(){
   const form=document.getElementById('booking-form');
   const valid=form.name.value.trim() && form.email.value.trim() && form.phone.value.trim() && document.getElementById('terms-check').checked;
@@ -197,24 +244,23 @@ function checkConfirm(){
 }
 ['name','email','phone'].forEach(id=>{document.getElementById(id).addEventListener('input',checkConfirm);});
 
-// Handle email sending using sendForm
 document.getElementById('booking-form').addEventListener('submit', function(e){
   e.preventDefault();
   const btn=document.getElementById('confirm-btn');
   btn.value='Sender...';
-  emailjs.sendForm('service_f2mk0nm','template_gg154om',this)
+  emailjs.sendForm(CONFIG.emailJsServiceId, CONFIG.emailJsTemplateId, this)
   .then(()=>{
     btn.value='Bekræft og Send Mail';
     document.getElementById('request-modal').style.display='none';
     document.getElementById('success-date').textContent="Anmodning oprettet d. "+new Date().toLocaleDateString('da-DK');
     document.getElementById('success-modal').style.display='flex';
   })
-  .catch((err)=>{
-  btn.value = 'Bekræft og Send Mail';
-  document.getElementById('request-modal').style.display = 'none';
+  .catch(()=>{
+    btn.value = 'Bekræft og Send Mail';
+    document.getElementById('request-modal').style.display = 'none';
 
-  const mailText =
-`Item: ${document.querySelector('.container h1').textContent}
+    const mailText =
+`Item: ${CONFIG.itemName}
 Navn: ${this.name.value}
 Email: ${this.email.value}
 Telefon: ${this.phone.value}
@@ -226,25 +272,19 @@ Total Pris: ${this.price.value}
 
 Besked: ${this.message.value}`;
 
-  // Show fallback modal with copyable text
-  document.getElementById('fail-textarea').value = mailText;
-  document.getElementById('fail-modal').style.display = 'flex';
+    document.getElementById('fail-textarea').value = mailText;
+    document.getElementById('fail-modal').style.display = 'flex';
 
-  // Open user's default mail app automatically
-  openMailClient(
-    'Booking: Røgmaskine 500w',
-    mailText
-  );
-});
+    openMailClient(CONFIG.bookingSubject, mailText);
+  });
 });
 
 window.onclick=function(e){if(e.target.className==='modal') e.target.style.display='none';};
 
-  function openMailClient(subject, body) {
-  const mailto = `mailto:sanfro04@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+function openMailClient(subject, body) {
+  const mailto = `mailto:${CONFIG.fallbackEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   window.location.href = mailto;
 }
-
 </script>
 </body>
 </html>
