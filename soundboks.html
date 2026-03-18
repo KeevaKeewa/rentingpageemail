@@ -195,24 +195,36 @@ function toggleDelivery() {
 
 // Enhanced pricing calculation based on thresholds
 function updatePrice() {
-  if(selectedDates.length<2){document.getElementById('price').textContent='Pris: 0 DKK'; return 0;}
-  const start = selectedDates[0], end = selectedDates[1];
-  const days = Math.floor((end-start)/(1000*60*60*24))+1;
-  
-  let perDay = CONFIG.pricing.firstDay; // default for first day
-  CONFIG.pricing.thresholds.sort((a,b)=>b.minDays-a.minDays); // Descending
-  for(const t of CONFIG.pricing.thresholds){
-    if(days>=t.minDays){ perDay = t.perDay; break; }
+  if (selectedDates.length < 2) {
+    document.getElementById('price').textContent = 'Pris: 0 DKK';
+    return 0;
   }
 
-  let total = CONFIG.pricing.firstDay + (days>1 ? (days-1)*perDay : 0);
+  const start = selectedDates[0];
+  const end = selectedDates[1];
+  const days = Math.floor((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
+  // Find den bedste dagpris (højeste rabat der gælder)
+  let dailyRate = CONFIG.pricing.firstDay;           // default 289
+  CONFIG.pricing.thresholds.sort((a, b) => b.minDays - a.minDays); // 7 først, så 3
+
+  for (const t of CONFIG.pricing.thresholds) {
+    if (days >= t.minDays) {
+      dailyRate = t.perDay;   // ← hele perioden får nu denne pris
+      break;
+    }
+  }
+
+  const total = days * dailyRate;
+
+  // Leveringstillæg
   const delivery = document.querySelector('input[name="delivery"]:checked').value;
-  if(delivery==='delivery'){
-    const loc=document.getElementById('location').value;
-    if(loc in CONFIG.stations) total += CONFIG.stations[loc];
+  if (delivery === 'delivery') {
+    const loc = document.getElementById('location').value;
+    if (loc in CONFIG.stations) total += CONFIG.stations[loc];
   }
-  document.getElementById('price').textContent=`Pris: ${total} DKK`;
+
+  document.getElementById('price').textContent = `Pris: ${total} DKK`;
   return total;
 }
 
